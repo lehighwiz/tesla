@@ -160,10 +160,15 @@ class TeslaCarDashcamSave(TeslaCarEntity, ButtonEntity):
     type = "dashcam save clip"
     _attr_icon = "mdi:video"
 
+    @property
+    def available(self) -> bool:
+        """Return True if dashcam clip save is available."""
+        return super().available and getattr(self._car, 'dashcam_clip_save_available', False)
+
     async def async_press(self) -> None:
         """Handle the button press."""
         await self.coordinator.controller.api(
-            "DASHCAM_SAVE_CLIP",
+            name="DASHCAM_SAVE_CLIP",
             path_vars={"vehicle_id": self._car.vin},
-            wake_if_asleep=False,
+            wake_if_asleep=True,
         )
