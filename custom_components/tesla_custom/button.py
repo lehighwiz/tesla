@@ -164,7 +164,7 @@ class TeslaCarDashcamSave(TeslaCarEntity, ButtonEntity):
         """Handle the button press."""
         try:
             await self.coordinator.controller.api(
-                name="dashcam_save_clip",
+                name="DASHCAM_CLIP_SAVE",
                 path_vars={"vehicle_id": self._car.vin},
                 wake_if_asleep=True,
             )
