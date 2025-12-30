@@ -30,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entitie
         entities.append(TeslaCarTriggerHomelink(car, coordinator))
         entities.append(TeslaCarRemoteStart(car, coordinator))
         entities.append(TeslaCarEmissionsTest(car, coordinator))
+        entities.append(TeslaCarDashcamSave(car, coordinator))
 
     async_add_entities(entities, update_before_add=True)
 
@@ -151,3 +152,18 @@ class TeslaCarEmissionsTest(TeslaCarEntity, ButtonEntity):
     def available(self) -> bool:
         """Return True."""
         return True
+
+
+class TeslaCarDashcamSave(TeslaCarEntity, ButtonEntity):
+    """Representation of a Tesla car dashcam save clip button."""
+
+    type = "dashcam save clip"
+    _attr_icon = "mdi:video"
+
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self.coordinator.controller.api(
+            "DASHCAM_SAVE_CLIP",
+            path_vars={"vehicle_id": self._car.vin},
+            wake_if_asleep=False,
+        )

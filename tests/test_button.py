@@ -37,6 +37,9 @@ async def test_registry_entries(hass: HomeAssistant) -> None:
     entry = entity_registry.async_get("button.my_model_s_emissions_test")
     assert entry.unique_id == f"{car_mock_data.VIN.lower()}_emissions_test"
 
+    entry = entity_registry.async_get("button.my_model_s_dashcam_save_clip")
+    assert entry.unique_id == f"{car_mock_data.VIN.lower()}_dashcam_save_clip"
+
 
 async def test_enabled_by_default(hass: HomeAssistant) -> None:
     """Tests devices are enabled by default."""
@@ -60,6 +63,9 @@ async def test_enabled_by_default(hass: HomeAssistant) -> None:
     assert not entry.disabled
 
     entry = entity_registry.async_get("button.my_model_s_remote_start")
+    assert not entry.disabled
+
+    entry = entity_registry.async_get("button.my_model_s_dashcam_save_clip")
     assert not entry.disabled
 
 
@@ -174,3 +180,21 @@ async def test_emissions_test_press(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_remote_boombox.assert_awaited_once()
+
+
+async def test_dashcam_save_clip_press(hass: HomeAssistant) -> None:
+    """Tests car dashcam save clip button press."""
+    await setup_platform(hass, BUTTON_DOMAIN)
+
+    with patch("teslajsonpy.controller.TeslaAPI.api") as mock_api:
+        await hass.services.async_call(
+            BUTTON_DOMAIN,
+            "press",
+            {ATTR_ENTITY_ID: "button.my_model_s_dashcam_save_clip"},
+            blocking=True,
+        )
+        mock_api.assert_awaited_once_with(
+            "DASHCAM_SAVE_CLIP",
+            path_vars={"vehicle_id": car_mock_data.VIN},
+            wake_if_asleep=True,
+        )
