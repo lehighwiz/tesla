@@ -163,11 +163,24 @@ class TeslaCarDashcamSave(TeslaCarEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         try:
+            # Try using teslajsonpy API first
             await self.coordinator.controller.api(
                 name="DASHCAM_CLIP_SAVE",
                 path_vars={"vehicle_id": self._car.vin},
                 wake_if_asleep=True,
             )
         except Exception as e:
-            _LOGGER.error("Failed to save dashcam clip: %s", e)
-            raise
+            _LOGGER.warning("teslajsonpy endpoint failed, trying direct API call: %s", e)
+            try:
+                # Fallback to direct HTTP call
+                url = f"https://owner-api.teslamotors.com/api/1/vehicles/{self._car.vin}/command/dashcam_save_clip"
+                headers = {
+                    "Authorization": f"Bearer {self.coordinator.controller._auth_token}",
+                    "Content-Type": "application/json",
+                }
+                async with self.coordinator.controller._session.post(url, headers=headers) as response:
+                    response.raise_for_status()
+                    _LOGGER.info("Dashcam clip save successful")
+            except Exception as e2:
+                _LOGGER.error("Failed to save dashcam clip via direct API: %s", e2)
+                raise
