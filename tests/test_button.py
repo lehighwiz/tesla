@@ -194,7 +194,7 @@ async def test_dashcam_save_clip_press(hass: HomeAssistant) -> None:
             blocking=True,
         )
         mock_api.assert_awaited_once_with(
-            name="DASHCAM_SAVE_CLIP",
+            name="dashcam_save_clip",
             path_vars={"vehicle_id": car_mock_data.VIN},
             wake_if_asleep=True,
         )
